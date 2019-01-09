@@ -1,5 +1,6 @@
 from flask import Flask, session, redirect, url_for, escape, request, render_template
 import MySQLdb
+from hashlib import md5
 
 app = Flask(__name__)
 
@@ -22,17 +23,17 @@ def login():
     if request.method == 'POST':
         username_form  = request.form['username']
         password_form  = request.form['password']
-        cur.execute("SELECT COUNT(1) FROM users WHERE Name = %s;", [username_form]) # CHECKS IF USERNAME EXSIST
+        cur.execute("SELECT COUNT(1) FROM users WHERE Name = %s;", [username_form]) # CHECKS IF USERNAME EXISTS
         if cur.fetchone()[0]:
-            cur.execute("SELECT password FROM users WHERE Name = %s;", [username_form]) # FETCH THE HASHED PASSWORD
+            cur.execute("SELECT password FROM users WHERE Name = %s;", [username_form])
             for row in cur.fetchall():
-                if password_form.hexdigest() == row[0]:
+                if md5(password_form).hexdigest() == row[0]:
                     session['username'] = request.form['username']
                     return redirect(url_for('index'))
                 else:
                     error = "Invalid Credential"
         else:
-            error = "Invalid Credential"
+            error = "Invalid Credentials"
     return render_template('Login.html', error=error)
 
 
